@@ -1,0 +1,5 @@
+NODE_ENV=staging
+APP_URL=https://staging.example.invalid
+DATABASE_URL=postgres://staging:decoy@pg-staging.internal.invalid:5432/staging
+SENTRY_DSN=https://example-not-real@o0.ingest.sentry.invalid/0
+QA_BYPASS_TOKEN=DECOY_QA_TOKEN_NOT_VALID

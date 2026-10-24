@@ -1,0 +1,6 @@
+NODE_ENV=development
+API_URL=https://dev-api.example.invalid
+DB_HOST=127.0.0.1
+DB_USER=dev
+DB_PASSWORD=dev_only_not_real
+FEATURE_BETA_CHECKOUT=true

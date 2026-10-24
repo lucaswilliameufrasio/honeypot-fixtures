@@ -1,0 +1,6 @@
+production:
+  adapter: postgresql
+  host: pg-rails.internal.invalid
+  database: rails_production
+  username: rails_app
+  password: DECOY_RAILS_PASSWORD_NOT_VALID

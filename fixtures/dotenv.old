@@ -1,0 +1,8 @@
+APP_ENV=development
+APP_DEBUG=true
+DB_HOST=10.0.0.42
+DB_PORT=5432
+DB_DATABASE=payments_v1
+DB_USERNAME=payments_legacy
+DB_PASSWORD=DECOY_V1_NOT_VALID
+ADMIN_EMAIL=ops@example.invalid

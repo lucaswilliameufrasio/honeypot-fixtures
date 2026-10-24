@@ -1,0 +1,6 @@
+APP_ENV=live
+DB_HOST=pg-live.internal.invalid
+DB_NAME=tickets
+DB_USER=svc_tickets
+DB_PASSWORD=DECOY_TICKETS_PASSWORD
+QUEUE_CONNECTION=redis

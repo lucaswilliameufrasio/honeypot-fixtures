@@ -1,0 +1,5 @@
+NODE_ENV=production
+PORT=3000
+MONGODB_URI=mongodb://readonly:decoy@mongo.internal.invalid:27017/main
+WEBHOOK_SECRET=DECOY_WEBHOOK_SECRET_NOT_VALID
+STRIPE_SECRET_KEY=sk_test_example_not_valid

@@ -1,0 +1,5 @@
+APP_ENV=stage
+SERVICE_NAME=web-gateway
+UPSTREAM_URL=http://gateway-stage.internal.invalid:8080
+INTERNAL_API_TOKEN=DECOY_STAGE_TOKEN_NOT_VALID
+LOG_LEVEL=debug

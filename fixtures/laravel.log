@@ -1,0 +1,2 @@
+[2026-10-10 21:13:35] production.ERROR: SQLSTATE[08006] [7] connection refused (Connection: pgsql, Host: pg-main.internal.invalid, Database: orders) {"trace_id":"decoy-trace-42"}
+[2026-10-10 21:13:37] production.WARNING: queue worker restarted {"job":"SyncTransactions","attempt":2}

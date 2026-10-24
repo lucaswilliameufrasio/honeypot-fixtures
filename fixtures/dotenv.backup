@@ -1,0 +1,8 @@
+# before rotation / 2025-08-17
+APP_ENV=production
+DB_HOST=pg-old-01.internal.invalid
+DB_DATABASE=orders_archive
+DB_USERNAME=orders_legacy
+DB_PASSWORD=DECOY_OLD_PASSWORD_NOT_VALID
+BACKUP_S3_BUCKET=example-archives-not-real
+BACKUP_REGION=us-east-1

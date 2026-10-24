@@ -1,0 +1,1 @@
+{"environment":"production","database":{"host":"pg-main.internal.invalid","user":"svc_gateway","password":"DECOY_NOT_VALID"},"admin":{"url":"https://admin.example.invalid"}}
