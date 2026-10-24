@@ -11,8 +11,6 @@
   "/.env.live": "dotenv.live",
   "/.env.dev": "dotenv.dev",
   "/.env.stage": "dotenv.stage",
-  "/../.env": "dotenv.env",
-  "/../../.env": "dotenv.env",
   "/env": "env.json",
   "/config/.env": "config.env",
   "/app/.env": "app.env",

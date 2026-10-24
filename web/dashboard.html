@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Honeypot — painel</title>
+  <link rel="stylesheet" href="/dashboard/app.css">
+  <script src="/dashboard/app.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">HONEYPOT HTTP</p>
+      <h1>Painel de operação</h1>
+      <p class="muted">Acompanhe os acessos capturados e configure o encaminhamento.</p>
+    </header>
+
+    <section class="card" aria-labelledby="auth-title">
+      <h2 id="auth-title">Acesso administrativo</h2>
+      <label for="token">Token administrativo</label>
+      <div class="row">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Defina HONEYPOT_ADMIN_TOKEN">
+        <button id="connect" type="button">Conectar</button>
+      </div>
+      <p id="connection-message" class="muted" role="status">O token fica apenas nesta aba e é enviado como Bearer token.</p>
+    </section>
+
+    <section class="metrics" aria-label="Resumo">
+      <article class="card metric"><span>Capturas honeypot</span><strong id="honeypot-hits">—</strong></article>
+      <article class="card metric"><span>Requisições proxy</span><strong id="proxy-hits">—</strong></article>
+      <article class="card metric"><span>Upstream</span><strong id="upstream-state">—</strong></article>
+      <article class="card metric"><span>Tempo ativo</span><strong id="uptime">—</strong></article>
+    </section>
+
+    <section class="card" aria-labelledby="config-title">
+      <h2 id="config-title">Configuração do proxy</h2>
+      <form id="config-form">
+        <label for="upstream-url">URL base do upstream</label>
+        <div class="row">
+          <input id="upstream-url" name="upstream_url" type="url" placeholder="https://api.exemplo.com" required>
+          <button id="save" type="submit" disabled>Salvar</button>
+        </div>
+      </form>
+      <p class="muted">A configuração é aplicada imediatamente, fica em memória e volta ao valor de HONEYPOT_UPSTREAM ao reiniciar.</p>
+      <p id="config-message" role="status"></p>
+    </section>
+
+    <section class="card" aria-labelledby="events-title">
+      <div class="section-heading">
+        <h2 id="events-title">Atividade recente</h2>
+        <button id="refresh" class="secondary" type="button" disabled>Atualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Horário</th><th>Tipo</th><th>Método</th><th>Caminho</th><th>Status</th></tr></thead>
+          <tbody id="events"><tr><td colspan="5" class="muted">Conecte-se para carregar os eventos.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

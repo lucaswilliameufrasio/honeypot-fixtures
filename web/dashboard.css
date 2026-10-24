@@ -1,0 +1,41 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #182230;
+  background: #f3f6fa;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(100% - 32px, 1100px); margin: 48px auto; }
+header { margin-bottom: 28px; }
+h1 { margin: 4px 0 8px; font-size: clamp(2rem, 5vw, 3rem); letter-spacing: -0.04em; }
+h2 { margin: 0 0 18px; font-size: 1.1rem; }
+.eyebrow { margin: 0; color: #2259a6; font-size: .76rem; font-weight: 800; letter-spacing: .14em; }
+.muted { color: #667085; }
+.card { padding: 22px; border: 1px solid #dfe5ed; border-radius: 14px; background: #fff; box-shadow: 0 8px 28px #1822300a; }
+section { margin-bottom: 18px; }
+.row { display: flex; gap: 10px; }
+label { display: block; margin-bottom: 8px; font-size: .9rem; font-weight: 650; }
+input { min-width: 0; flex: 1; padding: 11px 12px; border: 1px solid #c9d2df; border-radius: 8px; font: inherit; }
+input:focus { outline: 3px solid #b7d1ff; border-color: #3975d5; }
+button { padding: 10px 16px; border: 0; border-radius: 8px; color: white; background: #2259a6; font: inherit; font-weight: 700; cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.secondary { color: #2259a6; background: #eaf1fc; }
+.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.metric span, .metric strong { display: block; }
+.metric span { color: #667085; font-size: .85rem; }
+.metric strong { margin-top: 10px; font-size: 1.8rem; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+th, td { padding: 11px 10px; border-bottom: 1px solid #edf0f4; white-space: nowrap; }
+th { color: #667085; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+td:nth-child(4) { max-width: 360px; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 720px) {
+  main { margin: 24px auto; }
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+  .row { align-items: stretch; flex-direction: column; }
+  .row button { width: 100%; }
+}
