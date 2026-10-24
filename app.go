@@ -46,6 +46,9 @@ type statusResponse struct {
 	UpstreamConfigured bool           `json:"upstream_configured"`
 	HoneypotHits       uint64         `json:"honeypot_hits"`
 	ProxiedHits        uint64         `json:"proxied_hits"`
+	MetricsQueueDepth  int            `json:"metrics_queue_depth"`
+	MetricsQueueCap    int            `json:"metrics_queue_capacity"`
+	MetricsWriterBusy  bool           `json:"metrics_writer_busy"`
 	RecentEvents       []requestEvent `json:"recent_events"`
 }
 
@@ -198,6 +201,7 @@ func (a *app) serveStatus(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusServiceUnavailable, "As métricas estão temporariamente indisponíveis", "METRICS_UNAVAILABLE", nil)
 		return
 	}
+	queueDepth, queueCapacity, writerBusy := a.metrics.QueueStats()
 	a.configMu.RLock()
 	upstreamConfigured := a.upstream != nil
 	a.configMu.RUnlock()
@@ -206,6 +210,9 @@ func (a *app) serveStatus(w http.ResponseWriter, r *http.Request) {
 		UpstreamConfigured: upstreamConfigured,
 		HoneypotHits:       metrics.HoneypotHits,
 		ProxiedHits:        metrics.ProxyHits,
+		MetricsQueueDepth:  queueDepth,
+		MetricsQueueCap:    queueCapacity,
+		MetricsWriterBusy:  writerBusy,
 		RecentEvents:       metrics.RecentEvents,
 	}
 	writeJSON(w, http.StatusOK, response)

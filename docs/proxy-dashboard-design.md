@@ -14,6 +14,7 @@ O projeto respondia somente às rotas honeypot e não encaminhava tráfego norma
 - `PUT /v1/config` exige `If-Match` com o ETag atual. A revisão opaca é trocada a cada alteração; uma escrita concorrente com revisão antiga falha com 412.
 - Métricas são persistidas em SQLite por `modernc.org/sqlite`; Goose aplica migrations SQL timestamped embutidas no startup. Contadores são cumulativos e somente os 20 eventos mais recentes permanecem, evitando crescimento ilimitado de paths.
 - SQLite usa WAL com `synchronous=NORMAL`; a política prioriza throughput local e consistência do banco, mas pode perder transações recentes em falha de energia. Reavaliar se as métricas virarem dado operacional crítico.
+- O writer de métricas usa uma fila volátil limitada a 8.192 eventos, agrupa até 256 eventos já enfileirados sem janela de espera fixa, e confirma cada lote SQLite antes de `Record` retornar. `Close` fecha a admissão e drena a fila. Eventos em fila podem ser perdidos em encerramento abrupto; falha/timeout de persistência é logado sem alterar a resposta funcional.
 - O painel guarda o token apenas em memória JavaScript da aba. CSP restringe scripts, estilos e chamadas à mesma origem; respostas de painel e API usam `no-store`.
 - O servidor permanece vinculado a `127.0.0.1`. Para exposição atrás de proxy externo, esse proxy precisa proteger o painel/API e preservar os cabeçalhos de autorização.
 

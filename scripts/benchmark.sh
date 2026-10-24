@@ -116,14 +116,24 @@ run_case() {
   local mode=$2
   local rate=$3
   local duration=$4
+  local workers=128
+  local queue_size=1024
+  if ((rate > 5000)); then
+    workers=512
+    queue_size=8192
+  fi
+  if [[ "$name" == "health-only" ]]; then
+    workers=4096
+    queue_size=8192
+  fi
   printf 'Benchmark %-24s mode=%-8s rate=%-5s duration=%s\n' "$name" "$mode" "$rate" "$duration"
   "$scratch/loadgen" \
     -url "http://$app_addr" \
     -mode "$mode" \
     -rate "$rate" \
     -duration "$duration" \
-    -workers 128 \
-    -queue 1024 >"$output_dir/$name.json" &
+    -workers "$workers" \
+    -queue "$queue_size" >"$output_dir/$name.json" &
   loadgen_pid=$!
   python3 scripts/sample_process.py "$loadgen_pid" "$database_path" "$output_dir/resources-loadgen-$name.jsonl" &
   loadgen_sampler_pid=$!
@@ -136,8 +146,14 @@ run_case() {
 run_case warmup mixed 20 3s
 run_case honeypot-only honeypot 100 10s
 run_case proxy-only proxy 100 10s
+run_case health-only health 100000 10s
 
-rates=(50 100 200 400 800 1200 1600 2400 3200)
+default_rates=(50 100 200 400 800 1200 1600 2400 3200 5000 10000 20000 40000 80000 100000)
+read -r -a rates <<< "${BENCHMARK_RATES:-${default_rates[*]}}"
+if ((${#rates[@]} == 0)); then
+  printf 'BENCHMARK_RATES must contain at least one offered rate\n' >&2
+  exit 2
+fi
 for repetition in 1 2; do
   if [[ "$repetition" == 1 ]]; then
     ordered_rates=("${rates[@]}")
@@ -154,15 +170,15 @@ done
 
 healthy_rate=$(python3 scripts/select_benchmark_rate.py "$output_dir" 50)
 spike_rate=$((healthy_rate * 3))
-if ((spike_rate > 5000)); then
-  spike_rate=5000
+if ((spike_rate > 100000)); then
+  spike_rate=100000
 fi
 soak_rate=$((healthy_rate * 3 / 4))
 if ((soak_rate < 1)); then
   soak_rate=1
 fi
-if ((soak_rate > 1200)); then
-  soak_rate=1200
+if ((soak_rate > 10000)); then
+  soak_rate=10000
 fi
 run_case "spike-${spike_rate}" mixed "$spike_rate" 15s
 run_case "soak-${soak_rate}" mixed "$soak_rate" 60s
@@ -178,6 +194,6 @@ kill -TERM "$upstream_pid" 2>/dev/null || true
 wait "$upstream_pid" 2>/dev/null || true
 upstream_pid=""
 
-go test -run '^$' -bench '^BenchmarkMetricsStoreRecord$' -benchmem -benchtime=1s -count=3 ./... >"$output_dir/sqlite-microbench.txt"
+go test -run '^$' -bench '^BenchmarkMetricsStoreRecord(Parallel)?$' -benchmem -benchtime=1s -count=3 ./... >"$output_dir/sqlite-microbench.txt"
 python3 scripts/summarize_benchmark.py "$output_dir"
 printf '\nBenchmark artifacts: %s\n' "${output_dir#"$repo_root/"}"

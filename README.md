@@ -29,11 +29,13 @@ O servidor escuta somente em `127.0.0.1:8089`. Configure `HONEYPOT_UPSTREAM` com
 
 As métricas são persistidas em SQLite via `modernc.org/sqlite`; o arquivo padrão é `honeypot.sqlite`, alterável com `HONEYPOT_DB_PATH`. Goose aplica migrations SQL timestamped embutidas na inicialização. Os contadores são cumulativos; somente os 20 eventos mais recentes são mantidos. O arquivo e seus WAL/SHM são ignorados pelo Git. O banco usa WAL com `synchronous=NORMAL`: transações concluídas sobrevivem a encerramentos normais do processo, mas uma falha de energia pode perder commits recentes.
 
-Defina `HONEYPOT_ADMIN_TOKEN` por um mecanismo seguro para habilitar o painel e a API administrativa. Abra `http://127.0.0.1:8089/dashboard/`; o token não é salvo pelo navegador. O painel mostra contadores e os últimos 20 eventos em memória, e permite trocar o upstream em tempo de execução. Essa alteração não persiste após reiniciar: o valor volta ao `HONEYPOT_UPSTREAM` inicial.
+As gravações passam por uma fila em memória limitada a 8.192 eventos e são agrupadas oportunisticamente em lotes de até 256. Cada chamada de gravação aguarda o commit do seu lote; o fechamento drena os eventos aceitos. Uma queda abrupta pode perder eventos ainda não confirmados pelo writer. Se a persistência falhar ou exceder o timeout, o erro é registrado no log, mas não transforma a resposta funcional em erro.
+
+Defina `HONEYPOT_ADMIN_TOKEN` por um mecanismo seguro para habilitar o painel e a API administrativa. Abra `http://127.0.0.1:8089/dashboard/`; o token não é salvo pelo navegador. O painel mostra contadores e os últimos 20 eventos persistidos, e permite trocar o upstream em tempo de execução. Essa alteração não persiste após reiniciar: o valor volta ao `HONEYPOT_UPSTREAM` inicial.
 
 API administrativa (Bearer token obrigatório):
 
-- `GET /v1/status` — uptime, contadores, estado do upstream e atividade recente.
+- `GET /v1/status` — uptime, contadores, estado do upstream, atividade recente e profundidade/capacidade da fila do writer.
 - `GET /v1/config` — configuração atual e revisão (`ETag`).
 - `PUT /v1/config` — atualiza `{ "upstream_url": "https://api.example.test" }`; envie o `ETag` recebido em `If-Match`. Edições com revisão antiga retornam `412 PRECONDITION_FAILED`.
 
@@ -49,4 +51,4 @@ go build ./...
 scripts/benchmark.sh
 ```
 
-O benchmark usa um upstream sintético em loopback, varredura de carga open-loop com duas repetições, teste isolado honeypot/proxy, spike, recuperação, soak de 60 s, amostras de CPU/RSS/tamanho SQLite e microbenchmark do gravador. Ele é limitado a loopback e a 5.000 req/s; cada execução guarda JSON bruto e resumo em `benchmark-results/` (ignorado pelo Git). O critério indicativo de capacidade é erro+drop ≤0,5% e p99 ≤250 ms, não um SLA de produção.
+O benchmark usa um upstream sintético em loopback, varredura de carga open-loop com duas repetições, controle sem métricas em `/healthz`, teste isolado honeypot/proxy, spike, recuperação, soak de 60 s, amostras de CPU/RSS/tamanho SQLite e microbenchmarks serial/paralelo do gravador. O gerador aceita até 100.000 req/s, mas compartilha a máquina com o app; isso não representa capacidade de produção. Cada execução guarda JSON bruto e resumo em `benchmark-results/` (ignorado pelo Git). `BENCHMARK_RATES` permite escolher taxas da varredura. O critério indicativo de capacidade é erro+drop ≤0,5% e p99 ≤250 ms, não um SLA.

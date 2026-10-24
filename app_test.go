@@ -106,6 +106,9 @@ func TestProxyWithoutUpstreamReturnsStableAPIError(t *testing.T) {
 	if status.ProxiedHits != 1 {
 		t.Fatalf("proxied_hits = %d, want 1", status.ProxiedHits)
 	}
+	if status.MetricsQueueCap != metricsQueueCapacity || status.MetricsQueueDepth < 0 || status.MetricsQueueDepth > status.MetricsQueueCap {
+		t.Fatalf("metrics queue = %d/%d, want bounded capacity %d", status.MetricsQueueDepth, status.MetricsQueueCap, metricsQueueCapacity)
+	}
 }
 
 func TestConfigAPIUsesAuthValidationAndConditionalUpdates(t *testing.T) {

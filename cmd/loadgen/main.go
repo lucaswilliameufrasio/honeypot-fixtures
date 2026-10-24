@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-const maxRate = 5000
+const maxRate = 100000
 const maxDuration = 10 * time.Minute
 
 type result struct {
@@ -89,8 +89,8 @@ func validate(target string, mode string, rate int, duration time.Duration, work
 			return errors.New("loadgen only targets loopback addresses")
 		}
 	}
-	if mode != "honeypot" && mode != "proxy" && mode != "mixed" {
-		return errors.New("-mode must be honeypot, proxy, or mixed")
+	if mode != "honeypot" && mode != "proxy" && mode != "mixed" && mode != "health" {
+		return errors.New("-mode must be honeypot, proxy, mixed, or health")
 	}
 	if rate < 1 || rate > maxRate {
 		return fmt.Errorf("-rate must be between 1 and %d", maxRate)
@@ -98,8 +98,8 @@ func validate(target string, mode string, rate int, duration time.Duration, work
 	if duration < time.Second || duration > maxDuration {
 		return fmt.Errorf("-duration must be between 1s and %s", maxDuration)
 	}
-	if workers < 1 || workers > 512 {
-		return errors.New("-workers must be between 1 and 512")
+	if workers < 1 || workers > 4096 {
+		return errors.New("-workers must be between 1 and 4096")
 	}
 	if queueSize < 1 || queueSize > 8192 {
 		return errors.New("-queue must be between 1 and 8192")
@@ -201,6 +201,8 @@ func run(target string, mode string, rate int, duration time.Duration, workers i
 
 func pathFor(mode string, sequence int) string {
 	switch mode {
+	case "health":
+		return "/healthz"
 	case "honeypot":
 		return "/.env"
 	case "proxy":

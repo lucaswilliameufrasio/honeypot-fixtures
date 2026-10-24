@@ -16,6 +16,24 @@ func TestLoadgenOnlyAcceptsLoopbackOrigin(t *testing.T) {
 	if err := validate("http://127.0.0.1:8089", "mixed", 1, time.Second, 1, 1); err != nil {
 		t.Fatalf("valid loopback target rejected: %v", err)
 	}
+	if err := validate("http://127.0.0.1:8089", "mixed", maxRate, time.Second, 1, 1); err != nil {
+		t.Fatalf("maximum offered rate rejected: %v", err)
+	}
+	if err := validate("http://127.0.0.1:8089", "mixed", maxRate+1, time.Second, 1, 1); err == nil {
+		t.Fatal("rate above the configured maximum should be rejected")
+	}
+	if err := validate("http://127.0.0.1:8089", "mixed", 1, time.Second, 4096, 8192); err != nil {
+		t.Fatalf("maximum concurrency rejected: %v", err)
+	}
+	if err := validate("http://127.0.0.1:8089", "mixed", 1, time.Second, 4097, 8192); err == nil {
+		t.Fatal("concurrency above the configured maximum should be rejected")
+	}
+}
+
+func TestHealthModeUsesHealthEndpoint(t *testing.T) {
+	if got, want := pathFor("health", 1), "/healthz"; got != want {
+		t.Fatalf("health path = %q, want %q", got, want)
+	}
 }
 
 func TestLoadgenReportsOfferedAndDeliveredRequests(t *testing.T) {

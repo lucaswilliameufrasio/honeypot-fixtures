@@ -51,15 +51,15 @@ def main():
         f"- Runtime: {metadata['go_version']}; {metadata['os']} {metadata['arch']}; {metadata['cpu_count']} logical CPUs; {metadata['memory_total_gib']:.1f} GiB RAM",
         f"- Build: optimized `go build`; source commit `{metadata['commit']}`; worktree dirty: `{str(metadata['worktree_dirty']).lower()}`",
         "- Scope: loopback only, one honeypot process, local synthetic echo upstream, SQLite WAL; no TLS or external network.",
-        "- Mixed profile: 80% exact honeypot route, 20% proxied API route; 128 closed HTTP workers offered at an open-loop fixed rate; 1024-slot bounded load queue.",
+        "- Mixed profile: 80% exact honeypot route, 20% proxied API route; open-loop arrival rate with a bounded generator queue. Runs through 5,000 rps use 128 HTTP workers and a 1,024-slot queue; higher-rate mixed runs use 512 workers and an 8,192-slot queue. The 100,000-rps health-only control uses `/healthz` (no SQLite writes) and 4,096 workers so the lightweight control is not capped by low client concurrency.",
         f"- Healthy-step heuristic (benchmark-only, not an SLA): generator offers ≥ {MIN_GENERATOR_DELIVERY * 100:.0f}% of target, combined error/drop ratio ≤ {HEALTHY_ERROR_RATIO * 100:.1f}%, and p99 ≤ {HEALTHY_P99_MS:.0f} ms.",
         "",
         "## HTTP load phases",
         "",
-        "| Scenario | Target rps | Actual offered rps | Offered | Completed | Delivered rps | Client queue drops | Errors | p50 ms | p95 ms | p99 median/max ms |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Scenario | Workers | Target rps | Actual offered rps | Offered | Completed | Delivered rps | Client queue drops | Errors | p50 ms | p95 ms | p99 median/max ms |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
-    ordered_names = ["warmup", "honeypot-only", "proxy-only"]
+    ordered_names = ["warmup", "honeypot-only", "proxy-only", "health-only"]
     ordered_names.extend(sorted(name for name in cases if name.startswith("spike-")))
     ordered_names.extend(sorted(name for name in cases if name.startswith("soak-")))
     if "recovery" in cases:
@@ -69,12 +69,12 @@ def main():
         if case is None:
             continue
         lines.append(
-            f"| {name} | {case['offered_rate_rps']} | {case['actual_offered_rps']:.1f} | {case['offered']} | {case['completed']} | {case['delivered_rps']:.1f} | {case['dropped']} | {case['errors']} | {case['latency_p50_ms']:.2f} | {case['latency_p95_ms']:.2f} | {case['latency_p99_ms']:.2f}/{case['latency_p99_ms']:.2f} |"
+            f"| {name} | {case['workers']} | {case['offered_rate_rps']} | {case['actual_offered_rps']:.1f} | {case['offered']} | {case['completed']} | {case['delivered_rps']:.1f} | {case['dropped']} | {case['errors']} | {case['latency_p50_ms']:.2f} | {case['latency_p95_ms']:.2f} | {case['latency_p99_ms']:.2f}/{case['latency_p99_ms']:.2f} |"
         )
     for rate, runs in capacity:
         median = lambda key: statistics.median(case[key] for case in runs)
         lines.append(
-            f"| capacity ×{len(runs)} | {rate} | {median('actual_offered_rps'):.1f} | {sum(case['offered'] for case in runs)} | {sum(case['completed'] for case in runs)} | {median('delivered_rps'):.1f} | {sum(case['dropped'] for case in runs)} | {sum(case['errors'] for case in runs)} | {median('latency_p50_ms'):.2f} | {median('latency_p95_ms'):.2f} | {median('latency_p99_ms'):.2f}/{max(case['latency_p99_ms'] for case in runs):.2f} |"
+            f"| capacity ×{len(runs)} | {runs[0]['workers']} | {rate} | {median('actual_offered_rps'):.1f} | {sum(case['offered'] for case in runs)} | {sum(case['completed'] for case in runs)} | {median('delivered_rps'):.1f} | {sum(case['dropped'] for case in runs)} | {sum(case['errors'] for case in runs)} | {median('latency_p50_ms'):.2f} | {median('latency_p95_ms'):.2f} | {median('latency_p99_ms'):.2f}/{max(case['latency_p99_ms'] for case in runs):.2f} |"
         )
     if healthy_rates:
         lines.extend(["", f"Highest sampled rate step meeting the heuristic in both repetitions: **{max(healthy_rates)} offered requests/s**."])
